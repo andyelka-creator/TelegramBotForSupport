@@ -44,6 +44,14 @@ log() { echo "[INFO] $*"; }
 warn() { echo "[WARN] $*"; }
 fail() { echo "[ERROR] $*" >&2; exit 1; }
 
+ensure_not_inside_project_dir() {
+  local cwd
+  cwd="$(pwd -P 2>/dev/null || echo '')"
+  if [ -n "$cwd" ] && { [ "$cwd" = "$PROJECT_DIR" ] || [ "${cwd#"$PROJECT_DIR"}" != "$cwd" ]; }; then
+    cd /
+  fi
+}
+
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Required command not found: $1"
 }
@@ -403,6 +411,7 @@ print_next_steps() {
 }
 
 main() {
+  ensure_not_inside_project_dir
   check_os
   ensure_mountpoint
   sync_repo
