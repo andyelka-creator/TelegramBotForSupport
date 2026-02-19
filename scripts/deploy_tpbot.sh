@@ -189,13 +189,16 @@ detect_docker_access() {
 prepare_pg_mount_permissions() {
   log "Ensuring permissions for $POSTGRES_MOUNT (uid:gid 999:999)"
   $SUDO mkdir -p "$POSTGRES_MOUNT"
+  $SUDO mkdir -p "$POSTGRES_MOUNT/pgdata"
 
   if [ -z "$(ls -A "$POSTGRES_MOUNT" 2>/dev/null || true)" ]; then
     $SUDO chown -R 999:999 "$POSTGRES_MOUNT"
   else
     $SUDO chown 999:999 "$POSTGRES_MOUNT"
+    $SUDO chown -R 999:999 "$POSTGRES_MOUNT/pgdata"
   fi
   $SUDO chmod 700 "$POSTGRES_MOUNT"
+  $SUDO chmod 700 "$POSTGRES_MOUNT/pgdata"
 }
 
 ensure_env_gitignored() {
