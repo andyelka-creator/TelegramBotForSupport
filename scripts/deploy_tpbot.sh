@@ -48,8 +48,13 @@ ensure_not_inside_project_dir() {
   local cwd
   cwd="$(pwd -P 2>/dev/null || echo '')"
   if [ -n "$cwd" ] && { [ "$cwd" = "$PROJECT_DIR" ] || [ "${cwd#"$PROJECT_DIR"}" != "$cwd" ]; }; then
+    warn "Current directory is inside $PROJECT_DIR; switching to / for safe update operations."
     cd /
   fi
+}
+
+enter_project_dir() {
+  cd "$PROJECT_DIR" || fail "Cannot enter $PROJECT_DIR"
 }
 
 require_cmd() {
@@ -416,6 +421,7 @@ main() {
   ensure_mountpoint
   sync_repo
   validate_project_layout
+  enter_project_dir
   install_docker
   detect_docker_access
   prepare_pg_mount_permissions
