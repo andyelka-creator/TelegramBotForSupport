@@ -90,7 +90,20 @@ sync_repo() {
   fi
 
   if [ ! -d "$PROJECT_DIR/.git" ]; then
-    fail "$PROJECT_DIR exists but is not a git repository"
+    if [ -z "$(ls -A "$PROJECT_DIR" 2>/dev/null || true)" ]; then
+      warn "$PROJECT_DIR exists and is empty; replacing with fresh clone"
+      $SUDO rm -rf "$PROJECT_DIR"
+      $SUDO git clone "$repo_url" "$PROJECT_DIR"
+      $SUDO git -C "$PROJECT_DIR" checkout "$ref"
+      return
+    fi
+
+    if [ -f "$PROJECT_DIR/Dockerfile" ] && [ -f "$PROJECT_DIR/.env.example" ] && [ -f "$PROJECT_DIR/docker-compose.yml" ]; then
+      warn "$PROJECT_DIR is not a git repository. Proceeding with existing project files and skipping git sync."
+      return
+    fi
+
+    fail "$PROJECT_DIR exists but is not a git repository and does not look like a TP Bot project directory."
   fi
 
   log "Updating repository in $PROJECT_DIR"
