@@ -4,6 +4,7 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
+from pydantic import ValidationError
 
 from app.bots.keyboards.task_actions import task_actions_markup
 from app.config import settings
@@ -61,6 +62,12 @@ async def issue_email(message: Message, state: FSMContext) -> None:
     await state.update_data(email=None if value == '-' else value)
 
     data = await state.get_data()
+    required_keys = {'task_id', 'token', 'last_name', 'first_name', 'phone'}
+    if not required_keys.issubset(data.keys()):
+        await message.answer('Сессия анкеты прервана. Пожалуйста, откройте ссылку заново.')
+        await state.clear()
+        return
+
     task_id = uuid.UUID(data['task_id'])
     token = data['token']
 
@@ -79,9 +86,9 @@ async def issue_email(message: Message, state: FSMContext) -> None:
         }
         try:
             validated = IssueNewForm.model_validate(candidate)
-        except Exception:
-            await message.answer('Ошибка валидации анкеты. Проверьте email/телефон и начните заново.')
-            await state.clear()
+        except ValidationError:
+            await message.answer('Проверьте формат email/телефона и отправьте email ещё раз (или "-").')
+            await state.set_state(IssueNewStates.email)
             return
 
         merged.update(
