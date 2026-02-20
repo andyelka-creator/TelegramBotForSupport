@@ -18,8 +18,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    role_enum = sa.Enum('ADMIN', 'SYSADMIN', name='role_enum')
-    task_type_enum = sa.Enum('ISSUE_NEW', 'REPLACE_DAMAGED', 'TOPUP', name='task_type_enum')
+    role_enum = sa.Enum('ADMIN', 'SYSADMIN', name='role_enum', create_type=False)
+    task_type_enum = sa.Enum('ISSUE_NEW', 'REPLACE_DAMAGED', 'TOPUP', name='task_type_enum', create_type=False)
     task_status_enum = sa.Enum(
         'CREATED',
         'DATA_COLLECTED',
@@ -29,8 +29,9 @@ def upgrade() -> None:
         'CLOSED',
         'CANCELLED',
         name='task_status_enum',
+        create_type=False,
     )
-    execution_mode_enum = sa.Enum('ASSISTED', name='execution_mode_enum')
+    execution_mode_enum = sa.Enum('ASSISTED', name='execution_mode_enum', create_type=False)
 
     bind = op.get_bind()
     role_enum.create(bind, checkfirst=True)

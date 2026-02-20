@@ -91,6 +91,37 @@ Migrate DB in container:
 docker-compose exec api alembic upgrade head
 ```
 
+## Production Deploy Checklist
+
+```bash
+cd /opt/tpbot
+docker compose pull
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+docker compose ps
+curl -sv http://127.0.0.1:8000/health
+curl -sv http://127.0.0.1:8000/tasks/active
+```
+
+Expected:
+- `/health` -> `200` with `{"status":"ok","db":"up"}`
+- `/tasks/active` -> `200` (empty list `[]` is valid)
+
+## Production Recovery (DB/Auth/Migrations)
+
+If `/health` is `503` or `/tasks/active` is `500`:
+
+```bash
+cd /opt/tpbot
+docker logs --tail=300 tpbot-api-1
+docker inspect tpbot-api-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E 'DATABASE_URL|POSTGRES_'
+docker inspect tpbot-db-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E 'POSTGRES_|PGDATA'
+docker exec tpbot-api-1 alembic current
+docker exec tpbot-api-1 alembic upgrade head
+curl -sv http://127.0.0.1:8000/health
+curl -sv http://127.0.0.1:8000/tasks/active
+```
+
 ## Task Lifecycle
 
 Statuses:
