@@ -1,5 +1,6 @@
 import json
 import uuid
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,6 +42,14 @@ class TaskService:
         self.permissions = PermissionService()
         self.invites = InviteService(InviteTokenRepository(session))
 
+    @asynccontextmanager
+    async def _transaction(self):
+        if self.session.in_transaction():
+            yield
+            return
+        async with self.session.begin():
+            yield
+
     async def create_task(self, task_type: TaskType, actor_id: int, initial_data: dict | None = None):
         result = await self.create_task_with_invite(task_type=task_type, actor_id=actor_id, initial_data=initial_data)
         return result.task
@@ -52,7 +61,7 @@ class TaskService:
         initial_data: dict | None = None,
         invite_expires_hours: int = 24,
     ) -> CreateTaskResult:
-        async with self.session.begin():
+        async with self._transaction():
             task = await self.tasks.create_task(task_type=task_type, created_by=actor_id)
             if initial_data:
                 await self.tasks.set_data(task.id, initial_data)
@@ -82,7 +91,7 @@ class TaskService:
     async def transition(self, task_id: uuid.UUID, actor_id: int, actor_role: Role, new_status: TaskStatus) -> TransitionResult:
         self.permissions.ensure_can_transition(actor_role, new_status)
 
-        async with self.session.begin():
+        async with self._transaction():
             task = await self.tasks.get_for_update(task_id)
             if task is None:
                 raise ValueError('Task not found')
@@ -133,7 +142,7 @@ class TaskService:
         return steps
 
     async def regenerate_invite(self, task_id: uuid.UUID, actor_id: int, expires_hours: int) -> uuid.UUID:
-        async with self.session.begin():
+        async with self._transaction():
             task = await self.tasks.get(task_id)
             if task is None:
                 raise ValueError('Task not found')
