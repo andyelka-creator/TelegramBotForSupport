@@ -21,6 +21,10 @@ async def resolve_actor_by_telegram_id(session: AsyncSession, telegram_id: int) 
 
 
 async def get_actor_from_message(message: Message, session: AsyncSession):
+    if message.from_user is None:
+        await message.answer('Не удалось определить пользователя. Отключите анонимный режим администратора в группе.')
+        return None
+
     user = await resolve_actor_by_telegram_id(session, message.from_user.id)
     if user is None:
         await message.answer('Access denied')
@@ -29,6 +33,10 @@ async def get_actor_from_message(message: Message, session: AsyncSession):
 
 
 async def get_actor_from_callback(callback: CallbackQuery, session: AsyncSession):
+    if callback.from_user is None:
+        await callback.answer('Не удалось определить пользователя', show_alert=True)
+        return None
+
     user = await resolve_actor_by_telegram_id(session, callback.from_user.id)
     if user is None:
         await callback.answer('Access denied', show_alert=True)
