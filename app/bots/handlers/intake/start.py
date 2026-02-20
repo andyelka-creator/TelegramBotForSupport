@@ -26,13 +26,13 @@ async def start_with_token(message: Message, command: CommandObject, state: FSMC
         invite_service = InviteService(InviteTokenRepository(session))
         try:
             invite = await invite_service.validate_token(token)
-        except InviteError as exc:
-            await message.answer(f'Invite is invalid: {exc}')
+        except InviteError:
+            await message.answer('Link expired. Please contact administrator.')
             return
 
         task = await TaskRepository(session).get(invite.task_id)
         if task is None:
-            await message.answer('Task not found')
+            await message.answer('Link expired. Please contact administrator.')
             return
 
         await state.update_data(token=token, task_id=str(task.id))

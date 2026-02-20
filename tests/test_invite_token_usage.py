@@ -14,15 +14,15 @@ async def test_invite_token_single_use(session):
     await session.commit()
 
     service = InviteService(InviteTokenRepository(session))
-    token = await service.create_token(task.id, expires_hours=1)
+    created = await service.create_token(task.id, expires_hours=1)
     await session.commit()
 
-    invite = await service.use_token(str(token))
+    invite = await service.use_token(str(created.token))
     assert invite.used_at is not None
     await session.commit()
 
     with pytest.raises(InviteError):
-        await service.validate_token(str(token))
+        await service.validate_token(str(created.token))
 
 
 async def test_invite_token_expired(session):

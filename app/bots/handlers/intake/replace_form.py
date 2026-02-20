@@ -75,11 +75,16 @@ async def _finish_replace(message: Message, state: FSMContext) -> None:
             merged['first_name'] = data.get('first_name')
 
         service = TaskService(session)
-        await service.fill_data(task_id, task.created_by, merged)
-
         invite_service = InviteService(InviteTokenRepository(session))
-        await invite_service.use_token(token)
-        await session.commit()
+        async with session.begin():
+            await service.fill_data(task_id, task.created_by, merged, auto_commit=False)
+            await invite_service.use_token(token)
+            await service.audit.log(
+                task_id=task_id,
+                actor_id=task.created_by,
+                action='INVITE_TOKEN_USED',
+                metadata={'token': token},
+            )
 
         await message.answer('Спасибо. Анкета отправлена.')
         await message.bot.send_message(

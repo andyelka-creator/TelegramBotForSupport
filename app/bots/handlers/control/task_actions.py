@@ -4,6 +4,8 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 
 from app.bots.handlers.common import get_actor_from_callback
+from app.bots.keyboards.task_actions import task_actions_markup
+from app.config import settings
 from app.db.session import AsyncSessionLocal
 from app.schemas.common import TaskStatus
 from app.services.permission_service import PermissionDeniedError
@@ -17,6 +19,10 @@ def _parse_callback(data: str) -> tuple[str, uuid.UUID]:
     # task:<action>:<task_id>
     _, action, task_id = data.split(':', maxsplit=2)
     return action, uuid.UUID(task_id)
+
+
+def _intake_link(token: uuid.UUID) -> str:
+    return f'https://t.me/{settings.intake_bot_username}?start={token}'
 
 
 @router.callback_query(F.data.startswith('task:'))
@@ -36,6 +42,19 @@ async def task_actions(callback: CallbackQuery) -> None:
             elif action == 'copy_steps':
                 text = await service.build_pds_steps(task_id, actor.id)
                 await callback.message.answer(text)
+            elif action == 'copy_link':
+                token = await service.get_active_invite(task_id)
+                if token is None:
+                    await callback.message.answer('No active link. Use Regenerate link.')
+                else:
+                    await callback.message.answer(f'Deep link: {_intake_link(token)}')
+            elif action == 'regen_link':
+                token = await service.regenerate_invite(task_id, actor.id, settings.invite_expires_hours)
+                link = _intake_link(token)
+                await callback.message.answer(
+                    f'New deep link: {link}',
+                    reply_markup=task_actions_markup(task_id, invite_link=link),
+                )
             elif action == 'take':
                 result = await service.transition(task_id, actor.id, actor.role, TaskStatus.IN_PROGRESS)
                 label = 'already IN_PROGRESS' if not result.applied else 'IN_PROGRESS'

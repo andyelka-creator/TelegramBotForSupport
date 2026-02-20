@@ -9,10 +9,8 @@ from app.bots.keyboards.task_actions import task_actions_markup
 from app.config import settings
 from app.db.session import AsyncSessionLocal
 from app.schemas.common import TaskStatus, TaskType
-from app.services.invite_service import InviteService
 from app.services.presentation_service import creation_help, render_task_card
 from app.services.task_service import TaskService
-from app.repositories.invite_tokens import InviteTokenRepository
 
 router = Router()
 
@@ -37,15 +35,17 @@ async def new_issue(message: Message) -> None:
             return
 
         service = TaskService(session)
-        task = await service.create_task(TaskType.ISSUE_NEW, actor.id, {'card_no': str(card_no)})
-
-        invite = InviteService(InviteTokenRepository(session))
-        token = await invite.create_token(task.id, settings.invite_expires_hours)
-        await session.commit()
-
-        link = _intake_link(token)
+        result = await service.create_task_with_invite(
+            TaskType.ISSUE_NEW,
+            actor.id,
+            {'card_no': str(card_no)},
+            invite_expires_hours=settings.invite_expires_hours,
+        )
+        task = result.task
+        link = _intake_link(result.invite_token)
+        await message.answer(f'Task ID: {task.id}\nDeep link: {link}')
         await message.answer(creation_help(TaskType.ISSUE_NEW, link))
-        await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id))
+        await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 
 
 @router.message(Command(commands=['zamena', 'new_replace']))
@@ -64,19 +64,17 @@ async def new_replace(message: Message) -> None:
             return
 
         service = TaskService(session)
-        task = await service.create_task(
+        result = await service.create_task_with_invite(
             TaskType.REPLACE_DAMAGED,
             actor.id,
             {'old_card_no': str(old_card_no), 'new_card_no': str(new_card_no)},
+            invite_expires_hours=settings.invite_expires_hours,
         )
-
-        invite = InviteService(InviteTokenRepository(session))
-        token = await invite.create_token(task.id, settings.invite_expires_hours)
-        await session.commit()
-
-        link = _intake_link(token)
+        task = result.task
+        link = _intake_link(result.invite_token)
+        await message.answer(f'Task ID: {task.id}\nDeep link: {link}')
         await message.answer(creation_help(TaskType.REPLACE_DAMAGED, link))
-        await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id))
+        await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 
 
 @router.message(Command(commands=['popolnenie', 'new_topup']))
