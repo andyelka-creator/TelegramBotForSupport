@@ -21,3 +21,11 @@ class UserRepository:
         self.session.add(user)
         await self.session.flush()
         return user
+
+    async def delete_by_telegram_id(self, telegram_id: int) -> bool:
+        user = await self.get_by_telegram_id(telegram_id)
+        if user is None:
+            return False
+        await self.session.delete(user)
+        await self.session.flush()
+        return True

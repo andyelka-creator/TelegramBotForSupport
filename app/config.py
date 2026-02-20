@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     control_bot_token: str = ''
     intake_bot_token: str = ''
     control_group_id: int = 0
+    owner_telegram_id: int = 0
     intake_bot_username: str = ''
     invite_expires_hours: int = 24
 

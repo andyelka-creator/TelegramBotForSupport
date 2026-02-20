@@ -35,8 +35,18 @@ Required vars:
 - `CONTROL_BOT_TOKEN=<telegram token>`
 - `INTAKE_BOT_TOKEN=<telegram token>`
 - `CONTROL_GROUP_ID=<telegram group id>`
+- `OWNER_TELEGRAM_ID=<telegram id of bot owner for auto-admin bootstrap>`
 - `INTAKE_BOT_USERNAME=<intake bot username without @>`
 - `INVITE_EXPIRES_HOURS=24`
+
+Access bootstrap:
+- If `OWNER_TELEGRAM_ID` is set, this user is auto-created as `ADMIN` on first command.
+- No manual SQL insert is required for owner access.
+
+Control bot access commands:
+- `/whoami` — show your telegram_id and current role.
+- `/grant <telegram_id> <ADMIN|SYSADMIN>` — grant or update role (ADMIN only).
+- `/revoke <telegram_id>` — remove user access (ADMIN only; owner cannot be revoked by command).
 
 ## How to Create Telegram Bots
 

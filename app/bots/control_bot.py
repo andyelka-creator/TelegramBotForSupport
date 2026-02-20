@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from app.bots.handlers.control.create_task import router as create_router
 from app.bots.handlers.control.list_tasks import router as list_router
 from app.bots.handlers.control.task_actions import router as action_router
+from app.bots.handlers.control.user_management import router as user_mgmt_router
 from app.config import settings
 
 
@@ -17,6 +18,7 @@ async def run_control_bot() -> None:
     dp.include_router(create_router)
     dp.include_router(list_router)
     dp.include_router(action_router)
+    dp.include_router(user_mgmt_router)
 
     await dp.start_polling(bot)
 
