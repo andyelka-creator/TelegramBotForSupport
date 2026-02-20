@@ -73,12 +73,12 @@ async def active_button(message: Message) -> None:
             )
 
 
-@router.message(F.text == 'Создать выпуск')
+@router.message(F.text == 'Новая карта')
 async def issue_hint(message: Message) -> None:
     await message.answer('Используйте команду:\n/vypusk <card_no>', reply_markup=control_menu_keyboard)
 
 
-@router.message(F.text == 'Создать замену')
+@router.message(F.text == 'Замена карты')
 async def replace_hint(message: Message) -> None:
     await message.answer(
         'Используйте команду:\n/zamena <old_card_no> <new_card_no>',

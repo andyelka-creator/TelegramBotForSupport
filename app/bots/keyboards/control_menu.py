@@ -5,7 +5,7 @@ control_menu_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Помощь'), KeyboardButton(text='Активные задачи')],
         [KeyboardButton(text='Кто я'), KeyboardButton(text='Меню')],
-        [KeyboardButton(text='Создать выпуск'), KeyboardButton(text='Создать замену')],
+        [KeyboardButton(text='Новая карта'), KeyboardButton(text='Замена карты')],
         [KeyboardButton(text='Создать пополнение')],
     ],
     resize_keyboard=True,
