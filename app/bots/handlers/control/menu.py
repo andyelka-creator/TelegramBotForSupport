@@ -3,6 +3,7 @@ from aiogram.types import BotCommand
 
 
 CONTROL_BOT_COMMANDS = [
+    BotCommand(command='menu', description='Показать меню'),
     BotCommand(command='vypusk', description='Выпуск новой карты'),
     BotCommand(command='zamena', description='Замена карты'),
     BotCommand(command='popolnenie', description='Пополнение карты'),

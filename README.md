@@ -48,6 +48,7 @@ Control bot access commands:
 - `/grant <telegram_id> <ADMIN|SYSADMIN>` — grant or update role (ADMIN only).
 - `/revoke <telegram_id>` — remove user access (ADMIN only; owner cannot be revoked by command).
 - `/help` — show all available control bot commands.
+- `/menu` — open persistent button menu in chat (Russian labels).
 
 ## How to Create Telegram Bots
 

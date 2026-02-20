@@ -12,6 +12,7 @@ HELP_TEXT = '\n'.join(
         '/ktoya - показать ваш telegram_id и роль',
         '/dat_dostup <telegram_id> <ADMIN|SYSADMIN> - выдать/изменить роль (только ADMIN)',
         '/ubrat_dostup <telegram_id> - отозвать доступ (только ADMIN)',
+        '/menu - открыть кнопочное меню',
         '/pomosh - показать эту справку',
     ]
 )

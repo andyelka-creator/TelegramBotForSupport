@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from app.bots.handlers.control.create_task import router as create_router
 from app.bots.handlers.control.help import router as help_router
 from app.bots.handlers.control.list_tasks import router as list_router
+from app.bots.handlers.control.menu_actions import router as menu_router
 from app.bots.handlers.control.menu import setup_control_bot_commands
 from app.bots.handlers.control.task_actions import router as action_router
 from app.bots.handlers.control.user_management import router as user_mgmt_router
@@ -19,6 +20,7 @@ async def run_control_bot() -> None:
     await setup_control_bot_commands(bot)
 
     dp = Dispatcher()
+    dp.include_router(menu_router)
     dp.include_router(help_router)
     dp.include_router(create_router)
     dp.include_router(list_router)
