@@ -19,6 +19,17 @@ def _intake_link(token: uuid.UUID) -> str:
     return f'https://t.me/{settings.intake_bot_username}?start={token}'
 
 
+def _link_explainer(task_id: uuid.UUID, link: str) -> str:
+    return (
+        f'ID задачи: {task_id}\n'
+        f'Ссылка для клиента (одноразовая): {link}\n\n'
+        'Назначение кнопок ниже:\n'
+        '- Отправить ссылку клиенту: открыть и переслать клиенту\n'
+        '- Показать ссылку: прислать ссылку текстом\n'
+        '- Обновить ссылку: сделать новую ссылку, старая перестанет работать'
+    )
+
+
 @router.message(Command(commands=['vypusk', 'new_issue']))
 async def new_issue(message: Message) -> None:
     # /vypusk <card_no>
@@ -43,7 +54,7 @@ async def new_issue(message: Message) -> None:
         )
         task = result.task
         link = _intake_link(result.invite_token)
-        await message.answer(f'Task ID: {task.id}\nDeep link: {link}')
+        await message.answer(_link_explainer(task.id, link))
         await message.answer(creation_help(TaskType.ISSUE_NEW, link))
         await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 
@@ -72,7 +83,7 @@ async def new_replace(message: Message) -> None:
         )
         task = result.task
         link = _intake_link(result.invite_token)
-        await message.answer(f'Task ID: {task.id}\nDeep link: {link}')
+        await message.answer(_link_explainer(task.id, link))
         await message.answer(creation_help(TaskType.REPLACE_DAMAGED, link))
         await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 

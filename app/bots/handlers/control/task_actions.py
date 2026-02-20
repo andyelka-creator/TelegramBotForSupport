@@ -45,28 +45,28 @@ async def task_actions(callback: CallbackQuery) -> None:
             elif action == 'copy_link':
                 token = await service.get_active_invite(task_id)
                 if token is None:
-                    await callback.message.answer('No active link. Use Regenerate link.')
+                    await callback.message.answer('Активной ссылки нет. Нажмите "Обновить ссылку".')
                 else:
-                    await callback.message.answer(f'Deep link: {_intake_link(token)}')
+                    await callback.message.answer(f'Ссылка для клиента: {_intake_link(token)}')
             elif action == 'regen_link':
                 token = await service.regenerate_invite(task_id, actor.id, settings.invite_expires_hours)
                 link = _intake_link(token)
                 await callback.message.answer(
-                    f'New deep link: {link}',
+                    f'Новая ссылка для клиента: {link}\nСтарая ссылка больше не работает.',
                     reply_markup=task_actions_markup(task_id, invite_link=link),
                 )
             elif action == 'take':
                 result = await service.transition(task_id, actor.id, actor.role, TaskStatus.IN_PROGRESS)
-                label = 'already IN_PROGRESS' if not result.applied else 'IN_PROGRESS'
-                await callback.message.answer(f'Task {result.task_id} -> {label}')
+                label = 'уже в работе' if not result.applied else 'в работе'
+                await callback.message.answer(f'Задача {result.task_id}: {label}')
             elif action == 'done':
                 result = await service.transition(task_id, actor.id, actor.role, TaskStatus.DONE_BY_SYSADMIN)
-                label = 'already DONE_BY_SYSADMIN' if not result.applied else 'DONE_BY_SYSADMIN'
-                await callback.message.answer(f'Task {result.task_id} -> {label}')
+                label = 'уже отмечена как выполненная' if not result.applied else 'выполнена сисадмином'
+                await callback.message.answer(f'Задача {result.task_id}: {label}')
             elif action == 'cancel':
                 result = await service.transition(task_id, actor.id, actor.role, TaskStatus.CANCELLED)
-                label = 'already CANCELLED' if not result.applied else 'CANCELLED'
-                await callback.message.answer(f'Task {result.task_id} -> {label}')
+                label = 'уже отменена' if not result.applied else 'отменена'
+                await callback.message.answer(f'Задача {result.task_id}: {label}')
         except (PermissionDeniedError, StateMachineError, ValueError) as exc:
             await callback.message.answer(str(exc))
         await callback.answer()
