@@ -4,7 +4,7 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import ForceReply, Message
 
 from app.bots.handlers.control.help import HELP_TEXT
 from app.bots.handlers.common import get_actor_from_message
@@ -98,7 +98,7 @@ async def active_button(message: Message) -> None:
 @router.message(F.text == 'Новая карта')
 async def issue_start(message: Message, state: FSMContext) -> None:
     await state.set_state(CreateFromMenuStates.issue_card_no)
-    await message.answer('Введите номер новой карты:', reply_markup=control_menu_keyboard)
+    await message.answer('Введите номер новой карты:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.issue_card_no)
@@ -132,7 +132,7 @@ async def issue_finish(message: Message, state: FSMContext) -> None:
 @router.message(F.text == 'Замена карты')
 async def replace_start(message: Message, state: FSMContext) -> None:
     await state.set_state(CreateFromMenuStates.replace_old_card_no)
-    await message.answer('Введите номер старой карты:', reply_markup=control_menu_keyboard)
+    await message.answer('Введите номер старой карты:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.replace_old_card_no)
@@ -143,7 +143,7 @@ async def replace_old(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(old_card_no=old_card_no)
     await state.set_state(CreateFromMenuStates.replace_new_card_no)
-    await message.answer('Введите номер новой карты:')
+    await message.answer('Введите номер новой карты:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.replace_new_card_no)
@@ -180,7 +180,7 @@ async def replace_finish(message: Message, state: FSMContext) -> None:
 @router.message(F.text == 'Создать пополнение')
 async def topup_start(message: Message, state: FSMContext) -> None:
     await state.set_state(CreateFromMenuStates.topup_card_no)
-    await message.answer('Введите номер карты для пополнения:', reply_markup=control_menu_keyboard)
+    await message.answer('Введите номер карты для пополнения:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.topup_card_no)
@@ -191,7 +191,7 @@ async def topup_card_no(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(card_no=card_no)
     await state.set_state(CreateFromMenuStates.topup_amount)
-    await message.answer('Введите сумму в рублях (целое число):')
+    await message.answer('Введите сумму в рублях (целое число):', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.topup_amount)
@@ -206,7 +206,7 @@ async def topup_amount(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(amount_rub=amount)
     await state.set_state(CreateFromMenuStates.topup_payment_id)
-    await message.answer('Введите payment_id:')
+    await message.answer('Введите payment_id:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.topup_payment_id)
@@ -217,7 +217,7 @@ async def topup_payment_id(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(payment_id=payment_id)
     await state.set_state(CreateFromMenuStates.topup_payer_name)
-    await message.answer('Введите ФИО плательщика:')
+    await message.answer('Введите ФИО плательщика:', reply_markup=ForceReply(selective=True))
 
 
 @router.message(CreateFromMenuStates.topup_payer_name)
