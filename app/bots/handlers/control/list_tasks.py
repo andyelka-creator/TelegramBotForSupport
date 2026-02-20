@@ -10,7 +10,7 @@ from app.services.presentation_service import render_task_card
 router = Router()
 
 
-@router.message(Command('active'))
+@router.message(Command(commands=['aktivnye', 'active']))
 async def active_tasks(message: Message) -> None:
     async with AsyncSessionLocal() as session:
         actor = await get_actor_from_message(message, session)
@@ -19,7 +19,7 @@ async def active_tasks(message: Message) -> None:
 
         tasks = await TaskRepository(session).list_active()
         if not tasks:
-            await message.answer('No active tasks')
+            await message.answer('Активных задач нет')
             return
 
         for task in tasks[:20]:
