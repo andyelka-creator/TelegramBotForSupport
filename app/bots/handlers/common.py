@@ -26,6 +26,8 @@ async def get_actor_from_message(message: Message, session: AsyncSession):
         return None
 
     user = await resolve_actor_by_telegram_id(session, message.from_user.id)
+    # Close implicit read transaction before write operations in handlers.
+    await session.commit()
     if user is None:
         await message.answer('Access denied')
         return None
@@ -38,6 +40,8 @@ async def get_actor_from_callback(callback: CallbackQuery, session: AsyncSession
         return None
 
     user = await resolve_actor_by_telegram_id(session, callback.from_user.id)
+    # Close implicit read transaction before write operations in handlers.
+    await session.commit()
     if user is None:
         await callback.answer('Access denied', show_alert=True)
         return None
