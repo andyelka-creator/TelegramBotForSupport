@@ -47,6 +47,7 @@ Control bot access commands:
 - `/whoami` — show your telegram_id and current role.
 - `/grant <telegram_id> <ADMIN|SYSADMIN>` — grant or update role (ADMIN only).
 - `/revoke <telegram_id>` — remove user access (ADMIN only; owner cannot be revoked by command).
+- `/help` — show all available control bot commands.
 
 ## How to Create Telegram Bots
 
