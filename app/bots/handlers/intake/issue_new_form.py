@@ -115,6 +115,8 @@ async def issue_email(message: Message, state: FSMContext) -> None:
 
         service = TaskService(session)
         invite_service = InviteService(InviteTokenRepository(session))
+        if session.in_transaction():
+            await session.commit()
         async with session.begin():
             await service.fill_data(task_id, task.created_by, merged, auto_commit=False)
             await invite_service.use_token(token)
