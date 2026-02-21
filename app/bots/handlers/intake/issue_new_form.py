@@ -58,7 +58,17 @@ async def issue_phone(message: Message, state: FSMContext) -> None:
 
 @router.message(IssueNewStates.email)
 async def issue_email(message: Message, state: FSMContext) -> None:
+    current = await state.get_data()
+    if current.get('_submitting'):
+        await message.answer('Анкета уже обрабатывается, подождите 1-2 секунды.')
+        return
+
     value = message.text.strip()
+    if value != '-' and '@' not in value:
+        await message.answer('Сейчас нужен email или "-" для пропуска. Пример: user@mail.ru')
+        await state.set_state(IssueNewStates.email)
+        return
+
     await state.update_data(email=None if value == '-' else value)
 
     data = await state.get_data()
@@ -70,6 +80,7 @@ async def issue_email(message: Message, state: FSMContext) -> None:
 
     task_id = uuid.UUID(data['task_id'])
     token = data['token']
+    await state.update_data(_submitting=True)
 
     async with AsyncSessionLocal() as session:
         task_repo = TaskRepository(session)
@@ -88,6 +99,7 @@ async def issue_email(message: Message, state: FSMContext) -> None:
             validated = IssueNewForm.model_validate(candidate)
         except ValidationError:
             await message.answer('Проверьте формат email/телефона и отправьте email ещё раз (или "-").')
+            await state.update_data(_submitting=False)
             await state.set_state(IssueNewStates.email)
             return
 
