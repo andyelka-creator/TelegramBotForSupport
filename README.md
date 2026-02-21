@@ -119,6 +119,24 @@ Expected:
 - `/health` -> `200` with `{"status":"ok","db":"up"}`
 - `/tasks/active` -> `200` (empty list `[]` is valid)
 
+## GitHub Auto Deploy
+
+Workflows:
+- `.github/workflows/ci.yml` — runs `pytest -q` on push/PR.
+- `.github/workflows/deploy.yml` — auto-deploys after successful CI on `main`.
+
+Required GitHub repository secrets:
+- `DEPLOY_HOST` — server host (e.g. `100.93.18.31`)
+- `DEPLOY_USER` — SSH user (e.g. `elka`)
+- `DEPLOY_SSH_KEY` — private SSH key for deploy user
+- `DEPLOY_PATH` — project path on server (default `/opt/tpbot`)
+
+Deploy job runs:
+- `git pull --ff-only`
+- `docker compose up -d --build api control_bot intake_bot`
+- `docker exec tpbot-api-1 alembic upgrade head`
+- health checks for `/health` and `/tasks/active`
+
 ## Production Recovery (DB/Auth/Migrations)
 
 If `/health` is `503` or `/tasks/active` is `500`:
@@ -192,3 +210,22 @@ Included:
 - `test_task_transition_idempotency.py`
 - `test_permissions.py`
 - `test_validation_service.py`
+
+## Telegram E2E Tests
+
+Real Telegram end-to-end scenario:
+- `tests/e2e/test_telegram_issue_new_flow.py`
+
+This test is disabled by default and runs only when:
+- `E2E_ENABLE=1`
+- `TELEGRAM_API_ID`
+- `TELEGRAM_API_HASH`
+- `E2E_TELEGRAM_SESSION` (Telethon StringSession)
+- `E2E_CONTROL_BOT_USERNAME`
+- `E2E_INTAKE_BOT_USERNAME`
+
+Run only e2e:
+
+```bash
+E2E_ENABLE=1 pytest -q -m e2e
+```
