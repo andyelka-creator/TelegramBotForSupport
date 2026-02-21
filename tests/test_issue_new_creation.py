@@ -1,6 +1,10 @@
+import pytest
+
 from app.repositories.tasks import TaskRepository
 from app.schemas.common import TaskStatus, TaskType
 from app.services.task_service import TaskService
+
+pytestmark = pytest.mark.integration
 
 
 async def test_issue_new_creation(session):

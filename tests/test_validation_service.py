@@ -2,6 +2,8 @@ import pytest
 
 from app.services.validation_service import ValidationError, normalize_phone
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     ('raw', 'expected'),

@@ -3,6 +3,8 @@ import pytest
 from app.schemas.common import TaskStatus
 from app.services.state_machine import StateMachineError, validate_transition
 
+pytestmark = pytest.mark.unit
+
 
 def test_valid_status_transition_chain():
     validate_transition(TaskStatus.CREATED, TaskStatus.DATA_COLLECTED)

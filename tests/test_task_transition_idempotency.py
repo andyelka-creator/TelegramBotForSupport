@@ -1,9 +1,12 @@
+import pytest
 from sqlalchemy import func, select
 
 from app.db.models.audit_log import AuditLog
 from app.repositories.tasks import TaskRepository
 from app.schemas.common import Role, TaskStatus, TaskType
 from app.services.task_service import TaskService
+
+pytestmark = pytest.mark.integration
 
 
 async def test_double_transition_is_idempotent_and_audited_once(session):

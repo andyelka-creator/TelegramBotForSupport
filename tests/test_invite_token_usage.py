@@ -8,6 +8,8 @@ from app.repositories.tasks import TaskRepository
 from app.schemas.common import TaskType
 from app.services.invite_service import InviteError, InviteService
 
+pytestmark = pytest.mark.integration
+
 
 async def test_invite_token_single_use(session):
     task = await TaskRepository(session).create_task(TaskType.ISSUE_NEW, created_by=1)

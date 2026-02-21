@@ -2,8 +2,12 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+import pytest
+
 from app.schemas.common import TaskType
 from app.services.pds_payload_service import PDSPayloadService
+
+pytestmark = pytest.mark.contract
 
 
 def test_pds_issue_payload_generation():

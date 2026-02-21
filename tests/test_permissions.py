@@ -5,6 +5,8 @@ from app.schemas.common import Role, TaskStatus, TaskType
 from app.services.permission_service import PermissionDeniedError
 from app.services.task_service import TaskService
 
+pytestmark = pytest.mark.integration
+
 
 async def test_admin_cannot_mark_done_by_sysadmin(session):
     service = TaskService(session)

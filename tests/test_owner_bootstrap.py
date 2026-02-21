@@ -1,7 +1,11 @@
+import pytest
+
 from app.bots.handlers.common import resolve_actor_by_telegram_id
 from app.config import settings
 from app.repositories.users import UserRepository
 from app.schemas.common import Role
+
+pytestmark = pytest.mark.integration
 
 
 async def test_owner_auto_bootstrap_to_admin(session, monkeypatch):

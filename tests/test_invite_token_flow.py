@@ -8,6 +8,8 @@ from app.schemas.common import TaskType
 from app.services.invite_service import InviteError, InviteService
 from app.services.task_service import TaskService
 
+pytestmark = pytest.mark.integration
+
 
 async def test_invite_token_created_for_issue_new(session):
     service = TaskService(session)
