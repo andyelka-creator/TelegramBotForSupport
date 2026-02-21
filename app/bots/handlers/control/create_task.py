@@ -16,27 +16,27 @@ router = Router()
 
 
 def _intake_link(token: uuid.UUID) -> str:
-    return f'https://t.me/{settings.intake_bot_username}?start={token}'
+    return f"https://t.me/{settings.intake_bot_username}?start={token}"
 
 
 def _link_explainer(task_id: uuid.UUID, link: str) -> str:
     return (
-        f'ID задачи: {task_id}\n'
-        f'Ссылка для клиента (одноразовая): {link}\n\n'
-        'Назначение кнопок ниже:\n'
-        '- Поделиться ссылкой: открыть интерфейс Telegram для отправки клиенту\n'
-        '- Открыть анкету: открыть ссылку анкеты\n'
-        '- Показать ссылку: прислать ссылку текстом (можно вручную скопировать)\n'
-        '- Обновить ссылку: сделать новую ссылку, старая перестанет работать'
+        f"ID задачи: {task_id}\n"
+        f"Ссылка для клиента (одноразовая): {link}\n\n"
+        "Назначение кнопок ниже:\n"
+        "- Поделиться ссылкой: открыть интерфейс Telegram для отправки клиенту\n"
+        "- Открыть анкету: открыть ссылку анкеты\n"
+        "- Показать ссылку: прислать ссылку текстом (можно вручную скопировать)\n"
+        "- Обновить ссылку: сделать новую ссылку, старая перестанет работать"
     )
 
 
-@router.message(Command(commands=['vypusk', 'new_issue']))
+@router.message(Command(commands=["vypusk", "new_issue"]))
 async def new_issue(message: Message) -> None:
     # /vypusk <card_no>
-    parts = message.text.split(maxsplit=1)
+    parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer('Формат: /vypusk <card_no>')
+        await message.answer("Формат: /vypusk <card_no>")
         return
 
     card_no = parts[1].strip()
@@ -50,22 +50,25 @@ async def new_issue(message: Message) -> None:
         result = await service.create_task_with_invite(
             TaskType.ISSUE_NEW,
             actor.id,
-            {'card_no': str(card_no)},
+            {"card_no": str(card_no)},
             invite_expires_hours=settings.invite_expires_hours,
         )
         task = result.task
+        if result.invite_token is None:
+            await message.answer("Не удалось сформировать ссылку для анкеты")
+            return
         link = _intake_link(result.invite_token)
         await message.answer(_link_explainer(task.id, link))
         await message.answer(creation_help(TaskType.ISSUE_NEW, link))
         await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 
 
-@router.message(Command(commands=['zamena', 'new_replace']))
+@router.message(Command(commands=["zamena", "new_replace"]))
 async def new_replace(message: Message) -> None:
     # /zamena <old_card_no> <new_card_no>
-    parts = message.text.split()
+    parts = (message.text or "").split()
     if len(parts) < 3:
-        await message.answer('Формат: /zamena <old_card_no> <new_card_no>')
+        await message.answer("Формат: /zamena <old_card_no> <new_card_no>")
         return
 
     old_card_no, new_card_no = parts[1], parts[2]
@@ -79,22 +82,25 @@ async def new_replace(message: Message) -> None:
         result = await service.create_task_with_invite(
             TaskType.REPLACE_DAMAGED,
             actor.id,
-            {'old_card_no': str(old_card_no), 'new_card_no': str(new_card_no)},
+            {"old_card_no": str(old_card_no), "new_card_no": str(new_card_no)},
             invite_expires_hours=settings.invite_expires_hours,
         )
         task = result.task
+        if result.invite_token is None:
+            await message.answer("Не удалось сформировать ссылку для анкеты")
+            return
         link = _intake_link(result.invite_token)
         await message.answer(_link_explainer(task.id, link))
         await message.answer(creation_help(TaskType.REPLACE_DAMAGED, link))
         await message.answer(render_task_card(task), reply_markup=task_actions_markup(task.id, invite_link=link))
 
 
-@router.message(Command(commands=['popolnenie', 'new_topup']))
+@router.message(Command(commands=["popolnenie", "new_topup"]))
 async def new_topup(message: Message) -> None:
     # /popolnenie <card_no> <amount_rub> <payment_id> <payer_name>
-    parts = message.text.split(maxsplit=4)
+    parts = (message.text or "").split(maxsplit=4)
     if len(parts) < 5:
-        await message.answer('Формат: /popolnenie <card_no> <amount_rub> <payment_id> <payer_name>')
+        await message.answer("Формат: /popolnenie <card_no> <amount_rub> <payment_id> <payer_name>")
         return
 
     card_no, amount, payment_id, payer_name = parts[1], parts[2], parts[3], parts[4]
@@ -109,10 +115,10 @@ async def new_topup(message: Message) -> None:
             TaskType.TOPUP,
             actor.id,
             {
-                'card_no': str(card_no),
-                'amount_rub': int(amount),
-                'payment_id': payment_id,
-                'payer_name': payer_name,
+                "card_no": str(card_no),
+                "amount_rub": int(amount),
+                "payment_id": payment_id,
+                "payer_name": payer_name,
             },
         )
         await service.change_status(task.id, actor.id, actor.role, TaskStatus.DATA_COLLECTED)

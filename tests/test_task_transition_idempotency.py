@@ -11,7 +11,7 @@ pytestmark = pytest.mark.integration
 
 async def test_double_transition_is_idempotent_and_audited_once(session):
     service = TaskService(session)
-    task = await service.create_task(TaskType.TOPUP, actor_id=1, initial_data={'card_no': '001'})
+    task = await service.create_task(TaskType.TOPUP, actor_id=1, initial_data={"card_no": "001"})
 
     await service.transition(task.id, actor_id=1, actor_role=Role.ADMIN, new_status=TaskStatus.DATA_COLLECTED)
     first = await service.transition(task.id, actor_id=1, actor_role=Role.ADMIN, new_status=TaskStatus.IN_PROGRESS)
@@ -21,9 +21,10 @@ async def test_double_transition_is_idempotent_and_audited_once(session):
     assert second.applied is False
 
     refreshed = await TaskRepository(session).get(task.id)
+    assert refreshed is not None
     assert refreshed.status == TaskStatus.IN_PROGRESS
 
     result = await session.execute(
-        select(func.count(AuditLog.id)).where(AuditLog.task_id == task.id).where(AuditLog.action == 'STATUS_CHANGED')
+        select(func.count(AuditLog.id)).where(AuditLog.task_id == task.id).where(AuditLog.action == "STATUS_CHANGED")
     )
     assert result.scalar_one() == 2

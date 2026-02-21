@@ -9,7 +9,7 @@ pytestmark = pytest.mark.integration
 
 async def test_issue_new_creation(session):
     service = TaskService(session)
-    task = await service.create_task(TaskType.ISSUE_NEW, actor_id=1, initial_data={'card_no': '001'})
+    task = await service.create_task(TaskType.ISSUE_NEW, actor_id=1, initial_data={"card_no": "001"})
 
     assert task.type == TaskType.ISSUE_NEW
     assert task.status == TaskStatus.CREATED
@@ -18,12 +18,13 @@ async def test_issue_new_creation(session):
         task.id,
         actor_id=1,
         payload={
-            'card_no': '001',
-            'last_name': 'Ivanov',
-            'first_name': 'Ivan',
-            'phone': '+7 (900) 123-45-67',
+            "card_no": "001",
+            "last_name": "Ivanov",
+            "first_name": "Ivan",
+            "phone": "+7 (900) 123-45-67",
         },
     )
 
     refreshed = await TaskRepository(session).get(task.id)
+    assert refreshed is not None
     assert refreshed.status == TaskStatus.DATA_COLLECTED
