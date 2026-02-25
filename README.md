@@ -38,6 +38,10 @@ Required vars:
 - `OWNER_TELEGRAM_ID=<telegram id of bot owner for auto-admin bootstrap>`
 - `INTAKE_BOT_USERNAME=<intake bot username without @>`
 - `INVITE_EXPIRES_HOURS=24`
+- `MTG_ROTATION_TARGETS=<name|ssh_target|config_path|service_name;...>`
+- `MTG_ROTATION_FRONT_DOMAIN=google.com`
+- `MTG_ROTATION_TIMEOUT_SEC=45`
+- `MTG_ROTATION_SSH_KEY_PATH=/root/.ssh/id_ed25519`
 
 Access bootstrap:
 - If `OWNER_TELEGRAM_ID` is set, this user is auto-created as `ADMIN` on first command.
@@ -49,6 +53,11 @@ Control bot access commands:
 - `/revoke <telegram_id>` — remove user access (ADMIN only; owner cannot be revoked by command).
 - `/help` — show all available control bot commands.
 - `/menu` — open persistent button menu in chat (Russian labels).
+- `/rotaciya_proxy` — rotate MTG secret on configured servers and send new proxy links to requester's DM.
+
+MTG rotation targets format:
+- `MTG_ROTATION_TARGETS=wolf|root@100.120.178.115|/etc/mtg.toml|mtg;tw|root@100.97.163.69|/etc/mtg.toml|mtg`
+- `MTG_ROTATION_SSH_KEY_PATH` should point to private key file available to `control_bot` process.
 
 ## How to Create Telegram Bots
 

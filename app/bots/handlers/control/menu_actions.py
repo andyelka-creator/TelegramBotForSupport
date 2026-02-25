@@ -1,6 +1,7 @@
 import uuid
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -16,6 +17,7 @@ from app.repositories.tasks import TaskRepository
 from app.repositories.users import UserRepository
 from app.schemas.common import TaskStatus, TaskType
 from app.services.presentation_service import creation_help, render_task_card
+from app.services.mtg_rotation_service import parse_mtg_rotation_targets, rotate_on_targets
 from app.services.task_service import TaskService
 
 router = Router()
@@ -35,7 +37,7 @@ def _menu_hint() -> str:
     return (
         "Меню управления задачами.\n"
         "Используйте кнопки ниже или slash-команды:\n"
-        "/vypusk, /zamena, /popolnenie, /aktivnye, /ktoya, /pomosh"
+        "/vypusk, /zamena, /popolnenie, /aktivnye, /ktoya, /rotaciya_proxy, /pomosh"
     )
 
 
@@ -108,6 +110,74 @@ async def active_button(message: Message) -> None:
                 render_task_card(task, photo_attached=has_photo),
                 reply_markup=control_menu_keyboard,
             )
+
+
+@router.message(Command(commands=["rotaciya_proxy", "rotate_mtg"]))
+@router.message(F.text == "Ротация MTG secret")
+async def rotate_mtg_secret(message: Message) -> None:
+    async with AsyncSessionLocal() as session:
+        actor = await get_actor_from_message(message, session)
+        if actor is None:
+            return
+
+    if message.from_user is None:
+        await message.answer("Не удалось определить пользователя", reply_markup=control_menu_keyboard)
+        return
+
+    try:
+        targets = parse_mtg_rotation_targets(settings.mtg_rotation_targets)
+    except ValueError as exc:
+        await message.answer(f"Ошибка конфигурации MTG_ROTATION_TARGETS: {exc}", reply_markup=control_menu_keyboard)
+        return
+
+    if not targets:
+        await message.answer(
+            "Ротация не настроена: заполните MTG_ROTATION_TARGETS в .env",
+            reply_markup=control_menu_keyboard,
+        )
+        return
+
+    await message.answer("Запускаю ротацию secret. Это может занять до минуты...")
+    try:
+        results = await rotate_on_targets(
+            targets=targets,
+            front_domain=settings.mtg_rotation_front_domain,
+            timeout_sec=settings.mtg_rotation_timeout_sec,
+            ssh_key_path=settings.mtg_rotation_ssh_key_path,
+        )
+    except Exception as exc:  # noqa: BLE001
+        await message.answer(f"Ошибка ротации: {exc}", reply_markup=control_menu_keyboard)
+        return
+
+    lines = ["Ротация MTG завершена:"]
+    for result in results:
+        if result.ok:
+            lines.append(f"\n[{result.target_name}] {result.ssh_target}")
+            lines.append(f"t.me: {result.tme_url}")
+            lines.append(f"tg:// {result.tg_url}")
+        else:
+            lines.append(f"\n[{result.target_name}] {result.ssh_target}")
+            lines.append(f"Ошибка: {result.error}")
+    report = "\n".join(lines)
+
+    bot = message.bot
+    if bot is None:
+        await message.answer(
+            f"Не удалось отправить в личку, bot context пуст.\n\n{report}", reply_markup=control_menu_keyboard
+        )
+        return
+
+    try:
+        await bot.send_message(chat_id=message.from_user.id, text=report, reply_markup=control_menu_keyboard)
+        await message.answer(
+            "Готово. Новые ссылки отправил вам в личные сообщения.", reply_markup=control_menu_keyboard
+        )
+    except TelegramForbiddenError:
+        await message.answer(
+            "Не могу написать вам в личку. Откройте диалог с ботом и нажмите Start, затем повторите ротацию.\n\n"
+            f"{report}",
+            reply_markup=control_menu_keyboard,
+        )
 
 
 @router.message(F.text == "Новая карта")
